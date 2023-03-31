@@ -41,7 +41,7 @@ namespace TowerDefense.Towers
 		/// <summary>
 		/// Gets the list of effects attached to the tower
 		/// </summary>
-		protected Affector[] Affectors
+		public Affector[] Affectors
 		{
 			get
 			{

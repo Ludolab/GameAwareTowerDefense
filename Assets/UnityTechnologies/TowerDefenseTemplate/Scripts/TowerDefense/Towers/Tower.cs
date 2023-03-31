@@ -78,6 +78,12 @@ namespace TowerDefense.Towers
 		}
 
 		/// <summary>
+		/// An event to notify others when the tower level changes.
+		/// Allows the GameAware tracking system to cache relevant tower data more easily.
+		/// </summary>
+		public event Action<int, TowerLevel> towerLevelChanged;
+
+		/// <summary>
 		/// The event that fires off when a player deletes a tower
 		/// </summary>
 		public Action towerDeleted;
@@ -266,6 +272,7 @@ namespace TowerDefense.Towers
 			LevelState levelState = LevelManager.instance.levelState;
 			bool initialise = levelState == LevelState.AllEnemiesSpawned || levelState == LevelState.SpawningEnemies;
 			currentTowerLevel.SetAffectorState(initialise);
+			if(towerLevelChanged != null) towerLevelChanged(currentLevel, levels[currentLevel]);
 		}
 
 		/// <summary>

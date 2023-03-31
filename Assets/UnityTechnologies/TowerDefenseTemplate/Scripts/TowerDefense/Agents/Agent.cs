@@ -1,5 +1,6 @@
 ﻿using System;
 using ActionGameFramework.Health;
+using Core.Health;
 using Core.Utilities;
 using TowerDefense.Affectors;
 using TowerDefense.Level;
@@ -51,10 +52,18 @@ namespace TowerDefense.Agents
 		/// </summary>
 		public event Action<Node> destinationReached;
 
+
 		/// <summary>
-		/// Position offset for an applied affect
+		/// Event fires when the agent is re-initialized
+		/// This is necessary for the GameAware system to know when the object is coming back out of the pool.
 		/// </summary>
-		public Vector3 appliedEffectOffset = Vector3.zero;
+        public event Action initialized;
+
+
+        /// <summary>
+        /// Position offset for an applied affect
+        /// </summary>
+        public Vector3 appliedEffectOffset = Vector3.zero;
 		
 		/// <summary>
 		/// Scale adjustment for an applied affect
@@ -175,6 +184,8 @@ namespace TowerDefense.Agents
 			m_NavMeshAgent.isStopped = false;
 			
 			m_LevelManager.IncrementNumberOfEnemies();
+
+			if(initialized != null) initialized();
 		}
 
 		/// <summary>
