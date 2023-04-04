@@ -53,6 +53,12 @@ namespace TowerDefense.Level
 				return waves[m_CurrentIndex].progress;
 			}
 		}
+		
+		public Wave CurrentWave {
+			get {
+				return waves[m_CurrentIndex];
+			}
+		}
 
 		/// <summary>
 		/// Called when a wave begins

@@ -22,7 +22,7 @@ public class TrackableEnemy : MetaDataTrackable {
         return enemyType + ENEMY_TYPE_COUNTERS[enemyType].ToString();
     }
 
-    private AttackingAgent agent;
+    private Agent agent;
     private LootDrop lootDrop;
     private bool tracking = false;
     public string EnemyType;
@@ -30,7 +30,7 @@ public class TrackableEnemy : MetaDataTrackable {
     // Start is called before the first frame update
     override protected void Start() {
     //    objectKey 
-        agent = GetComponent<AttackingAgent>();
+        agent = GetComponent<Agent>();
         lootDrop = GetComponent<LootDrop>();
 
         agent.initialized += OnInitialized;

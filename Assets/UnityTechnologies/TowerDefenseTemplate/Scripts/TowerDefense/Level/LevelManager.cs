@@ -2,6 +2,8 @@
 using Core.Economy;
 using Core.Health;
 using Core.Utilities;
+using GameAware;
+using Newtonsoft.Json.Linq;
 using TowerDefense.Economy;
 using TowerDefense.Towers.Data;
 using UnityEngine;
@@ -12,7 +14,7 @@ namespace TowerDefense.Level
 	/// The level manager - handles the level states and tracks the player's currency
 	/// </summary>
 	[RequireComponent(typeof(WaveManager))]
-	public class LevelManager : Singleton<LevelManager>
+	public class LevelManager : Singleton<LevelManager>, IMetaDataTrackable
 	{
 		/// <summary>
 		/// The configured level intro. If this is null the LevelManager will fall through to the gameplay state (i.e. SpawningEnemies)
@@ -93,10 +95,16 @@ namespace TowerDefense.Level
 			get { return (levelState == LevelState.Win) || (levelState == LevelState.Lose); }
 		}
 
-		/// <summary>
-		/// Fired when all the waves are done and there are no more enemies left
-		/// </summary>
-		public event Action levelCompleted;
+		public MetaDataFrameType FrameType => MetaDataFrameType.Inbetween;
+
+		public bool PersistAcrossScenes => false;
+
+		public string ObjectKey => name;
+
+        /// <summary>
+        /// Fired when all the waves are done and there are no more enemies left
+        /// </summary>
+        public event Action levelCompleted;
 
 		/// <summary>
 		/// Fired when all of the home bases are destroyed
@@ -204,6 +212,10 @@ namespace TowerDefense.Level
 			}
 		}
 
+		void Start() {
+			MetaDataTracker.Instance.AddTrackableObject(this);
+		}
+
 		/// <summary>
 		/// Updates the currency gain controller
 		/// </summary>
@@ -236,6 +248,8 @@ namespace TowerDefense.Level
 			{
 				homeBases[i].died -= OnHomeBaseDestroyed;
 			}
+
+			MetaDataTracker.Instance.RemoveTrackableObject(this);
 		}
 
 		/// <summary>
@@ -347,5 +361,56 @@ namespace TowerDefense.Level
 				levelFailed();
 			}
 		}
-	}
+
+		private JObject FormatWave(Wave wave) {
+			JObject ret = new JObject();
+			//progress
+			//timeToNextWave
+			//timeCompelted <- would need to track externally so maybe not for now
+			//enemies
+				//delayToSpawn
+				//agentName
+				//agentDescription
+			ret["progress"] = wave.progress;
+			if(wave is TimedWave timedWave) {
+				ret["timeToNextWave"] = timedWave.timeToNextWave;
+			}
+			JArray enemies = new JArray();
+			foreach (SpawnInstruction spawn in wave.spawnInstructions) {
+				enemies.Add(new JObject {
+					{"delayToSpawn" , spawn.delayToSpawn},
+					{"enemyType", spawn.agentConfiguration.agentName },
+					{"enemyDescription", spawn.agentConfiguration.agentDescription }
+				});
+			}
+			ret["enemies"] = enemies;
+			return ret;
+		}
+
+
+        public JObject InbetweenData() {
+			JObject ret = new JObject();
+			ret["currency"] = currency.currentCurrency;
+			ret["currentWaveNumber"] = waveManager.waveNumber;
+			ret["currentWaveProgress"] = waveManager.waveProgress;
+			ret["currentWave"] = FormatWave(waveManager.CurrentWave);
+			return ret;
+        }
+
+        public JObject KeyFrameData() {
+			JObject ret = InbetweenData();
+			ret["startingCurrency"] = startingCurrency;
+			ret["totalWaves"] = waveManager.totalWaves;
+			JArray waves = new JArray();
+			foreach(Wave wave in  waveManager.waves) {
+				waves.Add(FormatWave(wave));
+			}
+			ret["waves"] = waves;
+			return ret;
+        }
+
+        public DepthRect ScreenRect() {
+			return DepthRect.zero;
+        }
+    }
 }
