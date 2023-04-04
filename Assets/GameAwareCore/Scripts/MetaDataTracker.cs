@@ -178,7 +178,7 @@ namespace GameAware {
 
         void InitConnection() {
             ConfigurationOptions config = new ConfigurationOptions {
-                // EndPoints = {
+                //EndPoints = {
                 //     { middleWareURI, middleWarePort },
                 // },
 

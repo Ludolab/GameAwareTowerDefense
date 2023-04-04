@@ -1370,17 +1370,6 @@
             Gets the endpoint of the current node.
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.ClusterNode.IsFail">
-            <summary>
-            Gets whether this node is in a failed state.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Redis.ClusterNode.IsPossiblyFail">
-            <summary>
-            Gets whether this node is possibly in a failed state.
-            Possibly here means the node we're getting status from can't communicate with it, but doesn't mean it's down for sure.
-            </summary>
-        </member>
         <member name="P:StackExchange.Redis.ClusterNode.IsMyself">
             <summary>
             Gets whether this is the node which responded to the CLUSTER NODES request.
@@ -2006,20 +1995,6 @@
             Modifying it afterwards will have no effect on already-created multiplexers.
             </remarks>
         </member>
-        <member name="P:StackExchange.Redis.ConfigurationOptions.HeartbeatInterval">
-            <summary>
-            Controls how often the connection heartbeats. A heartbeat includes:
-            - Evaluating if any messages have timed out
-            - Evaluating connection status (checking for failures)
-            - Sending a server message to keep the connection alive if needed
-            </summary>
-            <remarks>
-            This defaults to 1000 milliseconds and should not be changed for most use cases.
-            If for example you want to evaluate whether commands have violated the <see cref="P:StackExchange.Redis.ConfigurationOptions.AsyncTimeout"/> at a lower fidelity
-            than 1000 milliseconds, you could lower this value.
-            Be aware setting this very low incurs additional overhead of evaluating the above more often.
-            </remarks>
-        </member>
         <member name="P:StackExchange.Redis.ConfigurationOptions.HighPrioritySocketThreads">
             <summary>
             Use ThreadPriority.AboveNormal for SocketManager reader and writer threads (true by default).
@@ -2190,11 +2165,6 @@
             </summary>
             <param name="includePassword">Whether to include the password.</param>
         </member>
-        <member name="P:StackExchange.Redis.ConfigurationOptions.Tunnel">
-            <summary>
-            Allows custom transport implementations, such as http-tunneling via a proxy.
-            </summary>
-        </member>
         <member name="T:StackExchange.Redis.Configuration.AzureOptionsProvider">
             <summary>
             Options provider for Azure environments.
@@ -2311,15 +2281,6 @@
             The server version to assume.
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.Configuration.DefaultOptionsProvider.HeartbeatInterval">
-            <summary>
-            Controls how often the connection heartbeats. A heartbeat includes:
-            - Evaluating if any messages have timed out
-            - Evaluating connection status (checking for failures)
-            - Sending a server message to keep the connection alive if needed
-            </summary>
-            <remarks>Be aware setting this very low incurs additional overhead of evaluating the above more often.</remarks>
-        </member>
         <member name="P:StackExchange.Redis.Configuration.DefaultOptionsProvider.IncludeDetailInExceptions">
             <summary>
             Should exceptions include identifiable details? (key names, additional .Data annotations)
@@ -2420,36 +2381,6 @@
             </summary>
             <param name="endPoints">The configured endpoints to determine SSL host from (e.g. from the port).</param>
             <returns>The common host, if any, detected from the endpoint collection.</returns>
-        </member>
-        <member name="T:StackExchange.Redis.Configuration.Tunnel">
-            <summary>
-            Allows interception of the transport used to communicate with Redis.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.Configuration.Tunnel.GetSocketConnectEndpointAsync(System.Net.EndPoint,System.Threading.CancellationToken)">
-            <summary>
-            Gets the underlying socket endpoint to use when connecting to a logical endpoint.
-            </summary>
-            <remarks><c>null</c> should be returned if a socket is not required for this endpoint.</remarks>
-        </member>
-        <member name="M:StackExchange.Redis.Configuration.Tunnel.BeforeSocketConnectAsync(System.Net.EndPoint,StackExchange.Redis.ConnectionType,System.Net.Sockets.Socket,System.Threading.CancellationToken)">
-            <summary>
-            Allows modification of a <see cref="T:System.Net.Sockets.Socket"/> between creation and connection.
-            Passed in is the endpoint we're connecting to, which type of connection it is, and the socket itself.
-            For example, a specific local IP endpoint could be bound, linger time altered, etc.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.Configuration.Tunnel.BeforeAuthenticateAsync(System.Net.EndPoint,StackExchange.Redis.ConnectionType,System.Net.Sockets.Socket,System.Threading.CancellationToken)">
-            <summary>
-            Invoked on a connected endpoint before server authentication and other handshakes occur, allowing pre-redis handshakes. By returning a custom <see cref="T:System.IO.Stream"/>,
-            the entire data flow can be intercepted, providing entire custom transports.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.Configuration.Tunnel.HttpProxy(System.Net.EndPoint)">
-            <summary>
-            Create a tunnel via an HTTP proxy server.
-            </summary>
-            <param name="proxy">The endpoint to use as an HTTP proxy server.</param>
         </member>
         <member name="T:StackExchange.Redis.ConnectionCounters">
             <summary>
@@ -2774,11 +2705,6 @@
             <param name="endpoint">The endpoint to get a server for.</param>
             <param name="asyncState">The async state to pass into the resulting <see cref="T:StackExchange.Redis.RedisServer"/>.</param>
         </member>
-        <member name="M:StackExchange.Redis.ConnectionMultiplexer.GetServers">
-            <summary>
-            Obtain configuration APIs for all servers in this multiplexer.
-            </summary>
-        </member>
         <member name="M:StackExchange.Redis.ConnectionMultiplexer.GetHashSlot(StackExchange.Redis.RedisKey)">
             <summary>
             Get the hash-slot associated with a given key, if applicable.
@@ -2846,11 +2772,6 @@
             <returns>The number of instances known to have received the message (however, the actual number can be higher).</returns>
         </member>
         <member name="M:StackExchange.Redis.ConnectionMultiplexer.Dispose">
-            <summary>
-            Release all resources associated with this object.
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.ConnectionMultiplexer.DisposeAsync">
             <summary>
             Release all resources associated with this object.
             </summary>
@@ -4600,11 +4521,6 @@
             This usually means primary/replica changes.
             </summary>
         </member>
-        <member name="E:StackExchange.Redis.IConnectionMultiplexer.ServerMaintenanceEvent">
-            <summary>
-            Raised when server indicates a maintenance event is going to happen.
-            </summary>
-        </member>
         <member name="M:StackExchange.Redis.IConnectionMultiplexer.GetEndPoints(System.Boolean)">
             <summary>
             Gets all endpoints defined on the multiplexer.
@@ -4682,11 +4598,6 @@
             </summary>
             <param name="endpoint">The endpoint to get a server for.</param>
             <param name="asyncState">The async state to pass to the created <see cref="T:StackExchange.Redis.IServer"/>.</param>
-        </member>
-        <member name="M:StackExchange.Redis.IConnectionMultiplexer.GetServers">
-            <summary>
-            Obtain configuration APIs for all servers in this multiplexer.
-            </summary>
         </member>
         <member name="M:StackExchange.Redis.IConnectionMultiplexer.ConfigureAsync(System.IO.TextWriter)">
             <summary>
@@ -6031,10 +5942,7 @@
             <param name="values">The values to execute against.</param>
             <param name="flags">The flags to use for this operation.</param>
             <returns>A dynamic representation of the script's result.</returns>
-            <remarks>
-            Be aware that this method is not resilient to Redis server restarts. Use <see cref="M:StackExchange.Redis.IDatabase.ScriptEvaluate(System.String,StackExchange.Redis.RedisKey[],StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)"/> instead.
-            <seealso href="https://redis.io/commands/evalsha"/>
-            </remarks>
+            <remarks><seealso href="https://redis.io/commands/evalsha"/></remarks>
         </member>
         <member name="M:StackExchange.Redis.IDatabase.ScriptEvaluate(StackExchange.Redis.LuaScript,System.Object,StackExchange.Redis.CommandFlags)">
             <summary>
@@ -6058,31 +5966,6 @@
             <param name="flags">The flags to use for this operation.</param>
             <returns>A dynamic representation of the script's result.</returns>
             <remarks><seealso href="https://redis.io/commands/eval"/></remarks>
-        </member>
-        <member name="M:StackExchange.Redis.IDatabase.ScriptEvaluateReadOnly(System.String,StackExchange.Redis.RedisKey[],StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)">
-            <summary>
-            Read-only variant of the EVAL command that cannot execute commands that modify data, Execute a Lua script against the server.
-            </summary>
-            <param name="script">The script to execute.</param>
-            <param name="keys">The keys to execute against.</param>
-            <param name="values">The values to execute against.</param>
-            <param name="flags">The flags to use for this operation.</param>
-            <returns>A dynamic representation of the script's result.</returns>
-            <remarks>
-            <seealso href="https://redis.io/commands/eval_ro"/>,
-            <seealso href="https://redis.io/commands/evalsha_ro"/>
-            </remarks>
-        </member>
-        <member name="M:StackExchange.Redis.IDatabase.ScriptEvaluateReadOnly(System.Byte[],StackExchange.Redis.RedisKey[],StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)">
-            <summary>
-            Read-only variant of the EVALSHA command that cannot execute commands that modify data, Execute a Lua script against the server using just the SHA1 hash.
-            </summary>
-            <param name="hash">The hash of the script to execute.</param>
-            <param name="keys">The keys to execute against.</param>
-            <param name="values">The values to execute against.</param>
-            <param name="flags">The flags to use for this operation.</param>
-            <returns>A dynamic representation of the script's result.</returns>
-            <remarks><seealso href="https://redis.io/commands/evalsha_ro"/></remarks>
         </member>
         <member name="M:StackExchange.Redis.IDatabase.SetAdd(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue,StackExchange.Redis.CommandFlags)">
             <summary>
@@ -6352,10 +6235,8 @@
             <param name="get">The key pattern to sort by, if any e.g. ExternalKey_* would return the value of ExternalKey_{listvalue} for each entry.</param>
             <param name="flags">The flags to use for this operation.</param>
             <returns>The sorted elements, or the external values if <c>get</c> is specified.</returns>
-            <remarks>
-            <seealso href="https://redis.io/commands/sort"/>,
-            <seealso href="https://redis.io/commands/sort_ro"/>
-            </remarks>
+            <remarks><seealso href="https://redis.io/commands/sort"/></remarks>
+            <remarks><seealso href="https://redis.io/commands/sort_ro"/></remarks>
         </member>
         <member name="M:StackExchange.Redis.IDatabase.SortAndStore(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisKey,System.Int64,System.Int64,StackExchange.Redis.Order,StackExchange.Redis.SortType,StackExchange.Redis.RedisValue,StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)">
             <summary>
@@ -8896,10 +8777,7 @@
             <param name="values">The values to execute against.</param>
             <param name="flags">The flags to use for this operation.</param>
             <returns>A dynamic representation of the script's result.</returns>
-            <remarks>
-            Be aware that this method is not resilient to Redis server restarts. Use <see cref="M:StackExchange.Redis.IDatabaseAsync.ScriptEvaluateAsync(System.String,StackExchange.Redis.RedisKey[],StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)"/> instead.
-            <seealso href="https://redis.io/commands/evalsha"/>
-            </remarks>
+            <remarks><seealso href="https://redis.io/commands/evalsha"/></remarks>
         </member>
         <member name="M:StackExchange.Redis.IDatabaseAsync.ScriptEvaluateAsync(StackExchange.Redis.LuaScript,System.Object,StackExchange.Redis.CommandFlags)">
             <summary>
@@ -8923,31 +8801,6 @@
             <param name="flags">The flags to use for this operation.</param>
             <returns>A dynamic representation of the script's result.</returns>
             <remarks><seealso href="https://redis.io/commands/eval"/></remarks>
-        </member>
-        <member name="M:StackExchange.Redis.IDatabaseAsync.ScriptEvaluateReadOnlyAsync(System.String,StackExchange.Redis.RedisKey[],StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)">
-            <summary>
-            Read-only variant of the EVAL command that cannot execute commands that modify data, Execute a Lua script against the server.
-            </summary>
-            <param name="script">The script to execute.</param>
-            <param name="keys">The keys to execute against.</param>
-            <param name="values">The values to execute against.</param>
-            <param name="flags">The flags to use for this operation.</param>
-            <returns>A dynamic representation of the script's result.</returns>
-            <remarks>
-            <seealso href="https://redis.io/commands/eval_ro"/>,
-            <seealso href="https://redis.io/commands/evalsha_ro"/>
-            </remarks>
-        </member>
-        <member name="M:StackExchange.Redis.IDatabaseAsync.ScriptEvaluateReadOnlyAsync(System.Byte[],StackExchange.Redis.RedisKey[],StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)">
-            <summary>
-            Read-only variant of the EVALSHA command that cannot execute commands that modify data, Execute a Lua script against the server using just the SHA1 hash.
-            </summary>
-            <param name="hash">The hash of the script to execute.</param>
-            <param name="keys">The keys to execute against.</param>
-            <param name="values">The values to execute against.</param>
-            <param name="flags">The flags to use for this operation.</param>
-            <returns>A dynamic representation of the script's result.</returns>
-            <remarks><seealso href="https://redis.io/commands/evalsha_ro"/></remarks>
         </member>
         <member name="M:StackExchange.Redis.IDatabaseAsync.SetAddAsync(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue,StackExchange.Redis.CommandFlags)">
             <summary>
@@ -9206,10 +9059,7 @@
             <param name="get">The key pattern to sort by, if any e.g. ExternalKey_* would return the value of ExternalKey_{listvalue} for each entry.</param>
             <param name="flags">The flags to use for this operation.</param>
             <returns>The sorted elements, or the external values if <c>get</c> is specified.</returns>
-            <remarks>
-            <seealso href="https://redis.io/commands/sort"/>,
-            <seealso href="https://redis.io/commands/sort_ro"/>
-            </remarks>
+            <remarks><seealso href="https://redis.io/commands/sort"/></remarks>
         </member>
         <member name="M:StackExchange.Redis.IDatabaseAsync.SortAndStoreAsync(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisKey,System.Int64,System.Int64,StackExchange.Redis.Order,StackExchange.Redis.SortType,StackExchange.Redis.RedisValue,StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)">
             <summary>
@@ -11685,7 +11535,7 @@
             <summary>
             <para>
             Loads this LuaScript into the given IServer so it can be run with it's SHA1 hash, instead of
-            using the implicit SHA1 hash that's calculated after the script is sent to the server for the first time.
+            passing the full script on each Evaluate or EvaluateAsync call.
             </para>
             <para>Note: the FireAndForget command flag cannot be set.</para>
             </summary>
@@ -11696,7 +11546,7 @@
             <summary>
             <para>
             Loads this LuaScript into the given IServer so it can be run with it's SHA1 hash, instead of
-            using the implicit SHA1 hash that's calculated after the script is sent to the server for the first time.
+            passing the full script on each Evaluate or EvaluateAsync call.
             </para>
             <para>Note: the FireAndForget command flag cannot be set</para>
             </summary>
@@ -11740,7 +11590,6 @@
             <para>The SHA1 hash of ExecutableScript.</para>
             <para>This is sent to Redis instead of ExecutableScript during Evaluate and EvaluateAsync calls.</para>
             </summary>
-            <remarks>Be aware that using hash directly is not resilient to Redis server restarts.</remarks>
         </member>
         <member name="M:StackExchange.Redis.LoadedLuaScript.Evaluate(StackExchange.Redis.IDatabase,System.Object,System.Nullable{StackExchange.Redis.RedisKey},StackExchange.Redis.CommandFlags)">
             <summary>
@@ -11957,11 +11806,6 @@
             Number of messages sent since the last heartbeat was processed.
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.PhysicalBridge.BridgeStatus.ConnectedAt">
-            <summary>
-            The time this connection was connected at, if it's connected currently.
-            </summary>
-        </member>
         <member name="P:StackExchange.Redis.PhysicalBridge.BridgeStatus.IsWriterActive">
             <summary>
             Whether the pipe writer is currently active.
@@ -12057,16 +11901,6 @@
         <member name="P:StackExchange.Redis.PhysicalConnection.ConnectionStatus.BytesInWritePipe">
             <summary>
             Bytes in the writer pipe, waiting to be written to the socket.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Redis.PhysicalConnection.ConnectionStatus.BytesLastResult">
-            <summary>
-            Byte size of the last result we processed.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Redis.PhysicalConnection.ConnectionStatus.BytesInBuffer">
-            <summary>
-            Byte size on the buffer that isn't processed yet.
             </summary>
         </member>
         <member name="P:StackExchange.Redis.PhysicalConnection.ConnectionStatus.ReadStatus">
@@ -13454,11 +13288,6 @@
             Indicates whether the current value has the supplied value as a prefix.
             </summary>
             <param name="value">The <see cref="T:StackExchange.Redis.RedisValue"/> to check.</param>
-        </member>
-        <member name="F:StackExchange.Redis.ResultProcessor.ScriptLoadProcessor.SHA1Length">
-            <summary>
-            Anything hashed with SHA1 has exactly 40 characters. We can use that as a shortcut in the code bellow.
-            </summary>
         </member>
         <member name="T:StackExchange.Redis.ResultProcessor.LongestCommonSubsequenceProcessor">
             <summary>

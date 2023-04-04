@@ -16400,12 +16400,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd359dca979bdc4099bd76d00b7ce98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  middleWareURI: localhost
+  middleWareURI: 18.218.204.155
   middleWarePort: 6379
   keepAliveTime: 180
-  middleWareRedisPassword: changeme
+  middleWareRedisPassword: cmuludolab
   BeginMetaDataOnStart: 1
-  LocalDebug: 1
+  LocalDebug: 0
   gameName: Tower Defense Template
   streamerName: 
   updateMode: 0
