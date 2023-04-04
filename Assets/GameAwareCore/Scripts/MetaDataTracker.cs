@@ -93,7 +93,7 @@ namespace GameAware {
 
         public float CurrentTime {
             get {
-                return updateMode == RecordingUpdate.FixedUpdate ? Time.fixedTime : Time.time;
+                return updateMode == RecordingUpdate.FixedUpdate ? Time.fixedUnscaledTime : Time.unscaledTime;
             }
         }
 
