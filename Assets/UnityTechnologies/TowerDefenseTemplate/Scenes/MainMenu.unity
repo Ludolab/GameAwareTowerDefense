@@ -16400,7 +16400,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd359dca979bdc4099bd76d00b7ce98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  middleWareURI: 18.218.204.155
+  middleWareURI: 3.133.190.16
   middleWarePort: 6379
   keepAliveTime: 180
   middleWareRedisPassword: cmuludolab
@@ -16411,7 +16411,7 @@ MonoBehaviour:
   updateMode: 0
   keyFrameRate: 1
   tweenFrameRate: 24
-  showMockOverlay: 1
+  showMockOverlay: 0
   mockOverlayFilterString: 
   mockOverlayBoxColor: {r: 1, g: 0, b: 0, a: 1}
   mockOverlayTextColor: {r: 0, g: 0, b: 0, a: 1}

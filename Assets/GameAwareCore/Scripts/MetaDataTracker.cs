@@ -294,10 +294,10 @@ namespace GameAware {
         void FixedUpdate() {
             if (updateMode != RecordingUpdate.FixedUpdate || !Recording) return;
 
-            if (Time.fixedTime - lastKeyTime > 1 / keyFrameRate) {
+            if (CurrentTime - lastKeyTime > 1 / keyFrameRate) {
                 SendKeyFrame();
             }
-            else if (Time.fixedTime - lastTweenTime > 1 / tweenFrameRate) {
+            else if (CurrentTime - lastTweenTime > 1 / tweenFrameRate) {
                 SnapTweenFrame();
             }
         }
@@ -305,10 +305,10 @@ namespace GameAware {
         void Update() {
             if (updateMode != RecordingUpdate.Update || !Recording) return;
 
-            if (Time.time - lastKeyTime > 1 / keyFrameRate) {
+            if (CurrentTime - lastKeyTime > 1 / keyFrameRate) {
                 SendKeyFrame();
             }
-            else if (Time.time - lastTweenTime > 1 / tweenFrameRate) {
+            else if (CurrentTime - lastTweenTime > 1 / tweenFrameRate) {
                 SnapTweenFrame();
             }
         }
@@ -316,10 +316,10 @@ namespace GameAware {
         void LateUpdate() {
             if (updateMode != RecordingUpdate.LateUpdate || !Recording) return;
 
-            if (Time.time - lastKeyTime > 1 / keyFrameRate) {
+            if (CurrentTime - lastKeyTime > 1 / keyFrameRate) {
                 SendKeyFrame();
             }
-            else if (Time.time - lastTweenTime > 1 / tweenFrameRate) {
+            else if (CurrentTime - lastTweenTime > 1 / tweenFrameRate) {
                 SnapTweenFrame();
             }
         }

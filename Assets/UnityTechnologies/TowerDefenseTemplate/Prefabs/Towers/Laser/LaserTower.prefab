@@ -391,6 +391,7 @@ MonoBehaviour:
   frameType: 0
   persistAcrossScenes: 0
   screenRectStyle: 0
+  TowerType: PlasmaLance
 --- !u!1 &1533647513546944
 GameObject:
   m_ObjectHideFlags: 0
