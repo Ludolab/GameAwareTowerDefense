@@ -309,6 +309,7 @@ MonoBehaviour:
   frameType: 0
   persistAcrossScenes: 0
   screenRectStyle: 0
+  TowerType: MachineGun
 --- !u!1 &1584327446698034
 GameObject:
   m_ObjectHideFlags: 0

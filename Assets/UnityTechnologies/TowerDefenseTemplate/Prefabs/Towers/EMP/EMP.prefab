@@ -719,3 +719,4 @@ MonoBehaviour:
   frameType: 0
   persistAcrossScenes: 0
   screenRectStyle: 0
+  TowerType: EMP

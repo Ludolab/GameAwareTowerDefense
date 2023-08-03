@@ -277,6 +277,7 @@ MonoBehaviour:
   frameType: 0
   persistAcrossScenes: 0
   screenRectStyle: 0
+  TowerType: Pylon
 --- !u!1 &1314522538724518
 GameObject:
   m_ObjectHideFlags: 0

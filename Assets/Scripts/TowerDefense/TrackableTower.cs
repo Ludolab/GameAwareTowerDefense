@@ -11,8 +11,25 @@ using System.Transactions;
 using System.Linq;
 
 public class TrackableTower : MetaDataTrackable {
+    private static Dictionary<string, int> TOWER_TYPE_COUNTERS = new Dictionary<string, int>();
+
+    private static string GenerateObjectKey(string enemyType)
+    {
+        if (TOWER_TYPE_COUNTERS.ContainsKey(enemyType))
+        {
+            TOWER_TYPE_COUNTERS[enemyType]++;
+        }
+        else
+        {
+            TOWER_TYPE_COUNTERS[enemyType] = 0;
+        }
+        return enemyType + TOWER_TYPE_COUNTERS[enemyType].ToString();
+    }
+
+
     private static int Tower_Counter = 0;
 
+    public string TowerType;
     private Tower tower;
     private TowerLevel currentTowerLevel;
     private JObject towerStats = new JObject();
@@ -27,7 +44,7 @@ public class TrackableTower : MetaDataTrackable {
         OnTowerLevelChanged(0, tower.currentTowerLevel);
 
         Tower_Counter++;
-        objectKey = "Tower" + Tower_Counter;
+        objectKey = GenerateObjectKey(TowerType);
         frameType = MetaDataFrameType.Inbetween;
         screenRectStyle = ScreenSpaceReference.Collider;
         base.Start();
@@ -133,6 +150,7 @@ public class TrackableTower : MetaDataTrackable {
 
     public override JObject KeyFrameData() {
         JObject ret = InbetweenData();
+        ret["type"] = TowerType;
         ret["stats"] = towerStats;
         return ret;
     }
