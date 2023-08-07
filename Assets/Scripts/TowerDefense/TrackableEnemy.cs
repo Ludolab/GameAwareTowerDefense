@@ -61,20 +61,28 @@ public class TrackableEnemy : MetaDataTrackable {
     }
 
     public override JObject KeyFrameData() {
-        JObject ret = base.KeyFrameData();
-        ret["health"] = agent.configuration.currentHealth;
-        ret["maxHealth"] = agent.configuration.maxHealth;
-        ret["value"] = lootDrop.lootDropped;
-        ret["type"] = EnemyType;
-        //attackEnabled <- their attack affector is only turned on if their path is blocked
-        //currentTarget <- tower they're currently targeting or the base
-        //base damage? <- seems like they can have different damage to the base
-        return ret;
+        if (tracking) {
+            JObject ret = base.KeyFrameData();
+            ret["health"] = agent.configuration.currentHealth;
+            ret["maxHealth"] = agent.configuration.maxHealth;
+            ret["value"] = lootDrop.lootDropped;
+            ret["type"] = EnemyType;
+            //attackEnabled <- their attack affector is only turned on if their path is blocked
+            //currentTarget <- tower they're currently targeting or the base
+            //base damage? <- seems like they can have different damage to the base
+            return ret;
+        }
+        return new JObject();
     }
 
     public override JObject InbetweenData() {
-        JObject ret = base.InbetweenData();
-        ret["health"] = agent.configuration.currentHealth;
-        return ret;
+        if (tracking) {
+            JObject ret = base.InbetweenData();
+            ret["health"] = agent.configuration.currentHealth;
+            return ret;
+        }
+        else {
+            return new JObject();
+        }
     }
 }
