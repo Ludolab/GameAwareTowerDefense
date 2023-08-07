@@ -7,20 +7,22 @@ using System;
 using StackExchange.Redis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Security.Cryptography;
+using System.IO;
 
-namespace GameAware {
+namespace GameAware
+{
 
-    public class MetaDataTracker : MonoBehaviour {
+    public class MetaDataTracker : MonoBehaviour
+    {
         public static MetaDataTracker Instance { get; private set; } = null;
 
         private const string LATEST_FRAME = "latest";
         private const string START_FRAME = "start_frame";
         private const string END_FRAME = "end_frame";
-        private const string PUB_SUB_CHANNEL = "server_control"; 
+        private const string PUB_SUB_CHANNEL = "server_control";
 
-
-        public enum RecordingUpdate {
+        public enum RecordingUpdate
+        {
             Update,
             LateUpdate,
             FixedUpdate
@@ -79,60 +81,96 @@ namespace GameAware {
 
         public JObject LatestFrame { get; private set; }
 
-        public IReadOnlyList<IMetaDataTrackable> CurrentTrackables {
-            get {
+        public IReadOnlyList<IMetaDataTrackable> CurrentTrackables
+        {
+            get
+            {
                 return keyItems.AsReadOnly();
             }
         }
 
-        public long CurrentKeyFrameNum {
-            get {
+        public int TweenCount
+        {
+            get
+            {
+                return tweens.Count;
+            }
+        }
+
+        public long CurrentKeyFrameNum
+        {
+            get
+            {
                 return keyFrameNum;
             }
         }
 
-        public float CurrentTime {
-            get {
-                return updateMode == RecordingUpdate.FixedUpdate ? Time.fixedUnscaledTime: Time.unscaledTime;
+        public bool useUnscaledTime;
+
+        public float CurrentTime
+        {
+            get
+            {
+                if (useUnscaledTime)
+                {
+                    return updateMode == RecordingUpdate.FixedUpdate ? Time.fixedUnscaledTime : Time.unscaledTime;
+                }
+                else
+                {
+                    return updateMode == RecordingUpdate.FixedUpdate ? Time.fixedTime : Time.time;
+                }
             }
         }
 
-        public int CurrentTimeMills {
-            get {
+        public int CurrentTimeMills
+        {
+            get
+            {
                 return (int)(CurrentTime * 1000);
             }
         }
 
-        public float LastKeyTime {
-            get {
+        public float LastKeyTime
+        {
+            get
+            {
                 return lastKeyTime;
             }
         }
 
-        public int LastKeyTimeMills {
-            get {
+        public int LastKeyTimeMills
+        {
+            get
+            {
                 return (int)(LastKeyTime * 1000);
             }
         }
 
-        public float LastTweenTime {
-            get {
+        public float LastTweenTime
+        {
+            get
+            {
                 return lastTweenTime;
             }
         }
 
-        public int LastTweenTimeMills {
-            get {
+        public int LastTweenTimeMills
+        {
+            get
+            {
                 return (int)(LastKeyTime * 1000);
             }
         }
 
         private Camera screenSpaceCamera = null;
-        public Camera ScreenSpaceCamera {
-            set {
+        public Camera ScreenSpaceCamera
+        {
+            set
+            {
                 screenSpaceCamera = value;
             }
-            get {
+            get
+            {
                 return screenSpaceCamera == null ? Camera.main : screenSpaceCamera;
             }
         }
@@ -147,7 +185,8 @@ namespace GameAware {
 
         private Dictionary<string, DepthRect> mockRects = new Dictionary<string, DepthRect>();
 
-        public enum DebugSetting {
+        public enum DebugSetting
+        {
             None,
             All,
             ConstantsOnly
@@ -157,28 +196,35 @@ namespace GameAware {
         public DebugSetting debugSetting = DebugSetting.All;
 
         // Use this for initialization
-        void Awake() {
-            if (Instance != null) {
+        void Awake()
+        {
+            if (Instance != null)
+            {
                 Debug.LogWarning("Multiple MetaDataTrackers in Scene");
                 Destroy(this.gameObject);
             }
-            else {
+            else
+            {
                 Instance = this;
                 DontDestroyOnLoad(this);
                 SceneManager.activeSceneChanged += OnSceneChange;
             }
         }
 
-        IEnumerator Start() {
-            if (BeginMetaDataOnStart) {
+        IEnumerator Start()
+        {
+            if (BeginMetaDataOnStart)
+            {
                 yield return new WaitForEndOfFrame();
                 yield return StartMetaDataCoroutine();
             }
         }
 
-        void InitConnection() {
-            ConfigurationOptions config = new ConfigurationOptions {
-                //EndPoints = {
+        void InitConnection()
+        {
+            ConfigurationOptions config = new ConfigurationOptions
+            {
+                // EndPoints = {
                 //     { middleWareURI, middleWarePort },
                 // },
 
@@ -188,58 +234,71 @@ namespace GameAware {
             };
 
             config = ConfigurationOptions.Parse(string.Format("{0}:{1},password={2},keepAlive={3}", middleWareURI, middleWarePort, middleWareRedisPassword, keepAliveTime));
-
+            config.AllowAdmin = true;
             redisConn = ConnectionMultiplexer.Connect(config);
             redDb = redisConn.GetDatabase();
         }
 
 
-        public void StartMetaData() {
-            if (!Connected && !Recording) {
+        public void StartMetaData()
+        {
+            if (!Connected && !Recording)
+            {
                 StartCoroutine(StartMetaDataCoroutine());
             }
         }
 
-        IEnumerator StartMetaDataCoroutine() {
-            if (!LocalDebug) {
-                if (!Connected) {
+        IEnumerator StartMetaDataCoroutine()
+        {
+            if (!LocalDebug)
+            {
+                if (!Connected)
+                {
                     InitConnection();
                 }
-                while (!Connected) {
+                while (!Connected)
+                {
                     yield return new WaitForEndOfFrame();
                 }
-                var startMessage = new JObject {
-                    {"game_name", gameName },
-                    {"streamer_name", streamerName },
-                    {"key_frame_rate", keyFrameRate },
-                    {"tween_frame_rate", tweenFrameRate },
-                    {"game_time", CurrentTimeMills },
-                    {"clock_mills",DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString() },
-                    {"screen_width", Screen.width },
-                    {"screen_height", Screen.height },
-                };
-                string mess = JsonConvert.SerializeObject(startMessage);
-                PublishMessageToMiddleware(PUB_SUB_CHANNEL, "start");
-                WriteMetaDataToMiddleware(START_FRAME, mess, false);
             }
+            IServer server = redisConn.GetServer(middleWareURI, middleWarePort);
+
+            server.FlushDatabase();
+            InitLog();
+            var startMessage = new JObject {
+                {"game_name", gameName },
+                {"streamer_name", streamerName },
+                {"key_frame_rate", keyFrameRate },
+                {"tween_frame_rate", tweenFrameRate },
+                {"game_time", CurrentTimeMills },
+                {"clock_mills",DateTimeOffset.Now.ToUnixTimeMilliseconds() },
+                {"screen_width", Screen.width },
+                {"screen_height", Screen.height },
+            };
+            string mess = JsonConvert.SerializeObject(startMessage);
+            PublishMessageToMiddleware(PUB_SUB_CHANNEL, "start");
+            WriteMetaDataToMiddleware(START_FRAME, mess, false);
             Recording = true;
             SnapKeyFrame();
         }
 
-        public void StopMetaData() {
+        public void StopMetaData()
+        {
             Recording = false;
             var endMessage = new JObject {
                 {"final_frame_num", keyFrameNum },
                 {"game_time", CurrentTimeMills },
-                {"clock_mills",DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString() },
+                {"clock_mills",DateTimeOffset.Now.ToUnixTimeMilliseconds() },
             };
             string mess = JsonConvert.SerializeObject(endMessage);
             WriteMetaDataToMiddleware(END_FRAME, mess, false);
             PublishMessageToMiddleware(PUB_SUB_CHANNEL, "end-frame");
             redDb = null;
-            if (redisConn != null) {
+            if (redisConn != null)
+            {
                 redisConn.Close();
             }
+            CloseLog();
         }
 
         /// <summary>
@@ -247,33 +306,42 @@ namespace GameAware {
         /// The immediate flag is to allow for letting the current keyframe playout (immediate=false) or if it should stop everything now (immediate=true) this would require changes throughout the system.
         /// </summary>
         /// <param name="immediate"></param>
-        public void PauseMetaData(bool immediate = false) {
+        public void PauseMetaData(bool immediate = false)
+        {
             throw new NotImplementedException("Haven't implemented metadata pausing yet.");
         }
 
 
-        private void WriteMetaDataToMiddleware(string key, string message, bool asynchronous) {
-            if (Connected) {
-                if (asynchronous) {
-                    switch (debugSetting) {
+        private void WriteMetaDataToMiddleware(string key, string message, bool asynchronous)
+        {
+            if (!LocalDebug && Connected)
+            {
+                if (asynchronous)
+                {
+                    switch (debugSetting)
+                    {
                         case DebugSetting.All:
                             Debug.LogFormat("Redis Write Async: {0}: {1}", key, message);
                             break;
                         case DebugSetting.ConstantsOnly:
-                            if (key == LATEST_FRAME || key == START_FRAME || key == END_FRAME) {
+                            if (key == LATEST_FRAME || key == START_FRAME || key == END_FRAME)
+                            {
                                 Debug.LogFormat("Redis Write Async: {0}: {1}", key, message);
                             }
                             break;
                     }
                     redDb.StringSetAsync(key, message, flags: CommandFlags.FireAndForget);
                 }
-                else {
-                    switch (debugSetting) {
+                else
+                {
+                    switch (debugSetting)
+                    {
                         case DebugSetting.All:
                             Debug.LogFormat("Redis Write: {0}: {1}", key, message);
                             break;
                         case DebugSetting.ConstantsOnly:
-                            if (key == LATEST_FRAME || key == START_FRAME || key == END_FRAME) {
+                            if (key == LATEST_FRAME || key == START_FRAME || key == END_FRAME)
+                            {
                                 Debug.LogFormat("Redis Write: {0}: {1}", key, message);
                             }
                             break;
@@ -281,52 +349,57 @@ namespace GameAware {
                     redDb.StringSet(key, message);
                 }
             }
+            if (logWriter != null)
+            {
+                WriteLog(key, message);
+            }
         }
 
-        private void PublishMessageToMiddleware(string channel, string message) {
-            if (Connected) {
+        private void PublishMessageToMiddleware(string channel, string message)
+        {
+            if (!LocalDebug && Connected)
+            {
                 redDb.Publish(channel, message);
             }
         }
 
 
 
-        void FixedUpdate() {
+        void FixedUpdate()
+        {
             if (updateMode != RecordingUpdate.FixedUpdate || !Recording) return;
-
-            if (CurrentTime - lastKeyTime > 1 / keyFrameRate) {
-                SendKeyFrame();
-            }
-            else if (CurrentTime - lastTweenTime > 1 / tweenFrameRate) {
-                SnapTweenFrame();
-            }
+            TrackerUpdate();
         }
 
-        void Update() {
+        void Update()
+        {
             if (updateMode != RecordingUpdate.Update || !Recording) return;
-
-            if (CurrentTime - lastKeyTime > 1 / keyFrameRate) {
-                SendKeyFrame();
-            }
-            else if (CurrentTime - lastTweenTime > 1 / tweenFrameRate) {
-                SnapTweenFrame();
-            }
+            TrackerUpdate();
         }
 
-        void LateUpdate() {
+        void LateUpdate()
+        {
             if (updateMode != RecordingUpdate.LateUpdate || !Recording) return;
+            TrackerUpdate();
+        }
 
-            if (CurrentTime - lastKeyTime > 1 / keyFrameRate) {
+        void TrackerUpdate()
+        {
+            if (CurrentTime - lastKeyTime > 1 / keyFrameRate)
+            {
                 SendKeyFrame();
             }
-            else if (CurrentTime - lastTweenTime > 1 / tweenFrameRate) {
+            else if (CurrentTime - lastTweenTime > 1 / tweenFrameRate)
+            {
                 SnapTweenFrame();
             }
         }
 
 
-        private void SendKeyFrame() {
-            if (tweens.Count > 0) {
+        private void SendKeyFrame()
+        {
+            if (tweens.Count > 0)
+            {
                 currentFrameData["tweens"] = tweens;
                 tweens = new JArray();
             }
@@ -334,7 +407,7 @@ namespace GameAware {
 
             WriteMetaDataToMiddleware(keyFrameNum.ToString(), frameString, true);
             WriteMetaDataToMiddleware(LATEST_FRAME, frameString, true);
-            
+
             LatestFrame = currentFrameData;
 
             keyFrameNum += 1;
@@ -351,19 +424,26 @@ namespace GameAware {
          * If there are no Tween objects being recorded or if they report nothing then the tween list might be missing
          * keyFrameNum: {"key":{"obj_id1":{}, "obj_id2":{}, ...}}
          */
-        private void SnapKeyFrame() {
+        private void SnapKeyFrame()
+        {
+            Debug.Log("SnapKeyFrame");
             keyItems.AddRange(newItems);
-            foreach (IMetaDataTrackable mdo in newItems) {
-                if (mdo.FrameType == MetaDataFrameType.Inbetween) {
+            foreach (IMetaDataTrackable mdo in newItems)
+            {
+                if (mdo.FrameType == MetaDataFrameType.Inbetween)
+                {
                     tweenItems.Add(mdo);
                 }
             }
             newItems.Clear();
-            if (showMockOverlay) {
+            if (showMockOverlay)
+            {
                 mockRects.Clear();
-                foreach (IMetaDataTrackable mdo in keyItems) {
+                foreach (IMetaDataTrackable mdo in keyItems)
+                {
                     DepthRect drect = mdo.ScreenRect();
-                    if (drect.w > 0 && drect.h > 0) {
+                    if (drect.w > 0 && drect.h > 0)
+                    {
                         mockRects[mdo.ObjectKey] = mdo.ScreenRect();
                     }
                 }
@@ -371,12 +451,15 @@ namespace GameAware {
 
             currentFrameData = new JObject {
                 {"game_time", CurrentTimeMills },
+                {"clock_mills",DateTimeOffset.Now.ToUnixTimeMilliseconds() },
                 {"frame", keyFrameNum }
             };
             JObject key = new JObject();
-            foreach (IMetaDataTrackable mdo in keyItems) {
+            foreach (IMetaDataTrackable mdo in keyItems)
+            {
                 JObject mdoKey = mdo.KeyFrameData();
-                if (mdoKey.Count > 0) {
+                if (mdoKey.Count > 0)
+                {
                     key[mdo.ObjectKey] = mdoKey;
                 }
             }
@@ -387,15 +470,20 @@ namespace GameAware {
             //currentFrameData["frame"] = keyFrameNum;
         }
 
-        private void SnapTweenFrame() {
-            if (showMockOverlay) {
+        private void SnapTweenFrame()
+        {
+            Debug.Log("SnapTweenFrame");
+            if (showMockOverlay)
+            {
                 mockRects.Clear();
-                foreach (IMetaDataTrackable mdo in keyItems) {
+                foreach (IMetaDataTrackable mdo in keyItems)
+                {
                     mockRects[mdo.ObjectKey] = mdo.ScreenRect();
                 }
             }
 
-            if (tweenItems.Count == 0 || !Recording) {
+            if (tweenItems.Count == 0 || !Recording)
+            {
                 return;
             }
 
@@ -403,53 +491,68 @@ namespace GameAware {
             JObject newInbetween = new JObject {
                     {"dt", CurrentTimeMills - LastKeyTimeMills },
                     {"game_time", CurrentTimeMills },
+                    {"clock_mills",DateTimeOffset.Now.ToUnixTimeMilliseconds() },
                     //{"frame_num", inbetweenNum }
                 };
-            foreach (IMetaDataTrackable mdo in tweenItems) {
+            foreach (IMetaDataTrackable mdo in tweenItems)
+            {
                 JObject mdoTween = mdo.InbetweenData();
-                if (mdoTween.Count > 0) {
+                if (mdoTween.Count > 0)
+                {
                     newInbetween[mdo.ObjectKey] = mdoTween;
                 }
             }
-            if (newInbetween.Count > 0) {
+            if (newInbetween.Count > 0)
+            {
                 tweens.Add(newInbetween);
                 lastTweenTime = CurrentTime;
             }
         }
 
-        void OnSceneChange(Scene current, Scene next) {
+        void OnSceneChange(Scene current, Scene next)
+        {
             keyItems = keyItems.Where(md => md.PersistAcrossScenes).ToList();
             tweenItems = tweenItems.Where(md => md.PersistAcrossScenes).ToList();
             mockOverlayStyle = null;
         }
 
-        public void AddTrackableObject(IMetaDataTrackable mdo) {
+        public void AddTrackableObject(IMetaDataTrackable mdo)
+        {
             newItems.Add(mdo);
         }
 
-        public void RemoveTrackableObject(IMetaDataTrackable mdo) {
+        public void RemoveTrackableObject(IMetaDataTrackable mdo)
+        {
             keyItems.Remove(mdo);
             tweenItems.Remove(mdo);
         }
 
-        void OnDestroy() {
+        void OnDestroy()
+        {
             StopMetaData();
         }
 
-        private Texture2D MakeMockOverlayTexture(int width, int height, int border, Color color) {
+        private Texture2D MakeMockOverlayTexture(int width, int height, int border, Color color)
+        {
             Color[] pix = new Color[width * height];
-            for (int i = 0; i < pix.Length; i++) {
-                if (i < width * border) {
+            for (int i = 0; i < pix.Length; i++)
+            {
+                if (i < width * border)
+                {
                     pix[i] = color;
                 }
-                else if (i > width * (height - border)) {
+                else if (i > width * (height - border))
+                {
                     pix[i] = color;
                 }
-                else {
+                else
+                {
                     pix[i] = Color.clear;
                 }
-                for (int p = -border + 1; p < border + 1; p++) {
-                    if ((i + p) % width == 0) {
+                for (int p = -border + 1; p < border + 1; p++)
+                {
+                    if ((i + p) % width == 0)
+                    {
                         pix[i] = color;
                         break;
                     }
@@ -461,9 +564,12 @@ namespace GameAware {
             return tex;
         }
 
-        void OnGUI() {
-            if (showMockOverlay) {
-                if (mockOverlayStyle == null) {
+        void OnGUI()
+        {
+            if (showMockOverlay)
+            {
+                if (mockOverlayStyle == null)
+                {
                     Texture2D tex = MakeMockOverlayTexture(64, 64, 4, mockOverlayBoxColor);
                     mockOverlayStyle = new GUIStyle(GUI.skin.box);
                     mockOverlayStyle.normal.background = tex;
@@ -478,15 +584,68 @@ namespace GameAware {
                     }
                     GUI.Box(new Rect(screenRect.rect.x, screenRect.rect.y, screenRect.rect.width, screenRect.rect.height), mdt.ObjectKey, mockOverlayStyle);
                 }*/
-                foreach (string key in mockRects.Keys) {
-                    if (mockOverlayFilterString == string.Empty || key.Contains(mockOverlayFilterString)) {
+                foreach (string key in mockRects.Keys)
+                {
+                    if (mockOverlayFilterString == string.Empty || key.Contains(mockOverlayFilterString))
+                    {
                         var screenRect = mockRects[key];
-                        if (screenRect.z < 0) {
+                        if (screenRect.z < 0)
+                        {
                             continue;
                         }
                         GUI.Box(new Rect(screenRect.rect.x, screenRect.rect.y, screenRect.rect.width, screenRect.rect.height), key, mockOverlayStyle);
                     }
                 }
+            }
+        }
+
+        public bool createLogFile = false;
+        public string logFilePath = "C:\\Users\\eharpste\\Desktop\\";
+        public string logPrefix;
+        private TextWriter logWriter = null;
+
+        public void InitLog()
+        {
+            if (!createLogFile)
+            {
+                return;
+            }
+            string logPath = logFilePath + logPrefix + "_" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".txt";
+
+            try
+            {
+                logWriter = new StreamWriter(logPath);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Failed to create a log Writer");
+                Debug.LogException(ex);
+                logWriter = null;
+            }
+
+            if (logWriter != null)
+            {
+                logWriter.Write("{");
+            }
+        }
+
+        public void WriteLog(string key, string frame)
+        {
+            if (logWriter != null)
+            {
+                logWriter.WriteLine(string.Format("\"{0}\":{1},", key, frame));
+                logWriter.Flush();
+            }
+        }
+
+        public void CloseLog()
+        {
+            if (logWriter != null)
+            {
+                logWriter.Write("}");
+                logWriter.Flush();
+                logWriter.Close();
+                logWriter = null;
             }
         }
     }
